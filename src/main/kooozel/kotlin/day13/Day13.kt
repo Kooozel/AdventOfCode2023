@@ -1,11 +1,10 @@
 package main.kooozel.kotlin.day13
 
 import main.kooozel.kotlin.Day
-import org.apache.commons.text.similarity.LevenshteinDistance
 import java.awt.Point
 
 class Day13 : Day("13") {
-    val input = inputStringTest.split("\n\n")
+    val input = inputString.split("\n\n")
 
     private fun parseInput(string: String): MutableMap<Point, Pattern> {
         val map = mutableMapOf<Point, Pattern>()
@@ -19,91 +18,87 @@ class Day13 : Day("13") {
 
     private fun solveOne(string: String) {
         val map = parseInput(string)
-        checkVerticalPattern(map)
         checkHorizontalPattern(map)
+        checkVerticalPattern(map)
 
     }
 
     private fun checkHorizontalPattern(map: MutableMap<Point, Pattern>) {
         val max = map.keys.maxOf { it.getX() }.toInt()
         for (i in 1 until max + 1) {
-            checkHorizontalReflections(map, i, 0, max)
+            val up = getRows(map, 0,i ).reversed()
+            val down = getRows(map, i, max + 1)
+            if (up.zip(down).all { it.first == it.second }) result.add(i*100L)
         }
     }
 
-    private fun checkHorizontalReflections(
-        map: MutableMap<Point, Pattern>,
-        i: Int,
-        next: Int,
-        max: Int,
-    ) {
-        var newNext = next
-        val up = getRow(map, i - (1 + newNext))
-        val down = getRow(map, i + newNext)
-        if (up == down) {
-            println("Row Match $i")
-            newNext++
-
-            if (i - (1 + newNext) < 0 || (i+ newNext) > max) {
-                println("Full match row $i")
-                result.add(i * 100L)
-                return
+    private fun checkHorizontalPattern2(map: MutableMap<Point, Pattern>) {
+        val max = map.keys.maxOf { it.getX() }.toInt()
+        for (i in 1 until max + 1) {
+            val up = getRows(map, 0,i ).reversed()
+            val down = getRows(map, i, max + 1)
+            var difference = 0
+            up.zip(down).forEach {
+                difference += calculateDiff(it.first, it.second)
             }
-            return checkHorizontalReflections(map, i, newNext, max)
-        } else {
-            return
+            if (difference == 1) result.add(i*100L)
         }
+    }
+
+    private fun getRows(map: MutableMap<Point, Pattern>, i: Int, end: Int): MutableList<String> {
+        val list = mutableListOf<String>()
+        for (index in i until end) {
+            list.add(getRow(map, index))
+        }
+        return list
     }
 
     val result = mutableListOf<Long>()
 
+    private fun checkVerticalPattern2(map: MutableMap<Point, Pattern>) {
+        val max = map.keys.maxOf { it.getY() }.toInt()
+        for (i in 1 until max + 1) {
+            val left = getColumns(map, 0, i).reversed()
+            val right = getColumns(map, i, max + 1)
+            var difference = 0
+            left.zip(right).forEach {
+                difference += calculateDiff(it.first, it.second)
+            }
+            if (difference == 1) result.add(i.toLong())
+        }
+    }
+
     private fun checkVerticalPattern(map: MutableMap<Point, Pattern>) {
         val max = map.keys.maxOf { it.getY() }.toInt()
         for (i in 1 until max + 1) {
-            checkReflections(map, i, 0, max)
+            val left = getColumns(map, 0,i ).reversed()
+            val right = getColumns(map, i, max + 1)
+            if (left.zip(right).all { it.first == it.second }) result.add(i.toLong())
         }
     }
 
-    private fun checkReflections(
-        map: MutableMap<Point, Pattern>,
-        i: Int,
-        next: Int,
-        max: Int,
-    ) {
-        var newNext = next
-        val left = getColumn(map, i - (1 + newNext))
-        val right = getColumn(map, i + newNext)
-        if (left == right) {
-            println("Column Match $i")
-            newNext++
+    private fun calculateDiff(left: String, right: String): Int {
+            require(left.length == right.length) { "Input strings must have the same length" }
 
-            if (i - (1 + newNext) < 0 || (i+ newNext) > max) {
-                println("Full match column $i")
-                result.add(i.toLong())
-                return
+            var differences = 0
+
+            for (i in left.indices) {
+                if (left[i] != right[i]) {
+                    differences++
+                }
             }
-            return checkReflections(map, i, newNext, max)
-        } else {
-            return
+
+            return differences
+
+    }
+    private fun getColumns(map: MutableMap<Point, Pattern>, i: Int, end: Int): MutableList<String> {
+        val list = mutableListOf<String>()
+        for (index in i until end) {
+            list.add(getColumn(map, index))
         }
+    return list
     }
 
-//    private fun b(left: String, right: String, map: MutableMap<Point, Pattern>): Int {
-//            require(left.length == right.length) { "Input strings must have the same length" }
-//
-//            var differences = 0
-//            val mutableList = mutableListOf<Int>()
-//
-//            for (i in left.indices) {
-//                if (left[i] != right[i]) {
-//                    mutableList.add(i)
-//                    differences++
-//                }
-//            }
-//
-//            return differences
-//
-//    }
 
     private fun getColumn(map: MutableMap<Point, Pattern>, index: Int) =
         map.entries.filter { it.key.y == index }.sortedBy { it.key.getX() }.map { it.value.type.char }.joinToString("")
@@ -118,10 +113,16 @@ class Day13 : Day("13") {
         return result.sum()
     }
 
+    private fun solveOne2(s: String) {
+        val map = parseInput(s)
+        checkHorizontalPattern2(map)
+        checkVerticalPattern2(map)
+    }
+
     override fun partTwo(): Any {
         result.clear()
         for (s in input) {
-            solveOne(s)
+            solveOne2(s)
             println("done")
         }
         return result.sum()
