@@ -1,5 +1,7 @@
 package main.kooozel.kotlin
 
+import main.kooozel.kotlin.day13.Day13
+import java.awt.Point
 import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
@@ -30,4 +32,16 @@ fun readTestInputAsString(day: String) = Path("src/main/kooozel/kotlin/day${day}
 fun parseNumbers(input: String): List<Long> {
     val pattern = Regex("\\d+")
     return pattern.findAll(input).map { it.value.toLong() }.toList()
+}
+
+fun <T> Collection<T>.dropBlanks() = this.filter { it.toString().isNotBlank() }
+
+fun getGridMap(string: String): MutableMap<Point, Char> {
+    val map = mutableMapOf<Point, Char>()
+    string.split("\n").forEachIndexed { index, s ->
+        for (i in s.indices) {
+            map[Point(index, i)] = s[i]
+        }
+    }
+    return map
 }
