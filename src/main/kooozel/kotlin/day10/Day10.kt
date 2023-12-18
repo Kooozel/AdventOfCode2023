@@ -1,6 +1,7 @@
 package main.kooozel.kotlin.day10
 
 import main.kooozel.kotlin.Day
+import main.kooozel.kotlin.Direction
 
 class Day10 : Day("10") {
     val input = inputListTest
@@ -187,7 +188,3 @@ enum class PipeType(val symbol: Char, val connect: List<Direction>) {
     }
 }
 
-enum class Direction {
-    NORTH, WEST, EAST, SOUTH
-
-}
