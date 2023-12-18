@@ -13,7 +13,7 @@ class Day16 : Day("16") {
     val resultList = mutableListOf<Int>()
     val beamSet = mutableSetOf<Pair<Point, Direction>>()
     override fun partOne(): Any {
-        launchBeam(Point(0, 0), Direction.EAST)
+        launchBeam(Point(0, 0), Direction.RIGHT)
         printMap(grid)
 
         return newGrid.size
@@ -77,23 +77,23 @@ class Day16 : Day("16") {
         var nextDirection = direction
         println("Spiltter $direction $point $rotation")
         when (direction) {
-            Direction.EAST -> if (rotation) nextDirection = Direction.EAST else {
-                launchBeam(point, Direction.SOUTH)
-                launchBeam(point, Direction.NORTH)
+            Direction.RIGHT -> if (rotation) nextDirection = Direction.RIGHT else {
+                launchBeam(point, Direction.DOWN)
+                launchBeam(point, Direction.UP)
                 return null
             }
 
-            Direction.NORTH -> if (rotation) {
-                launchBeam(point, Direction.EAST); launchBeam(point, Direction.WEST);return null
-            } else nextDirection = Direction.NORTH
+            Direction.UP -> if (rotation) {
+                launchBeam(point, Direction.RIGHT); launchBeam(point, Direction.LEFT);return null
+            } else nextDirection = Direction.UP
 
-            Direction.WEST -> if (rotation) nextDirection = Direction.WEST else {
-                launchBeam(point, Direction.NORTH); launchBeam(point, Direction.SOUTH);return null
+            Direction.LEFT -> if (rotation) nextDirection = Direction.LEFT else {
+                launchBeam(point, Direction.UP); launchBeam(point, Direction.DOWN);return null
             }
 
-            Direction.SOUTH -> if (rotation) {
-                launchBeam(point, Direction.WEST); launchBeam(point, Direction.EAST);return null
-            } else nextDirection = Direction.SOUTH
+            Direction.DOWN -> if (rotation) {
+                launchBeam(point, Direction.LEFT); launchBeam(point, Direction.RIGHT);return null
+            } else nextDirection = Direction.DOWN
         }
         return nextDirection
     }
@@ -101,10 +101,10 @@ class Day16 : Day("16") {
     private fun mirror(direction: Direction, rotation: Boolean): Direction {
         println("mirror")
         val nextDirection: Direction = when (direction) {
-            Direction.EAST -> if (rotation) Direction.NORTH else Direction.SOUTH
-            Direction.NORTH -> if (rotation) Direction.EAST else Direction.WEST
-            Direction.WEST -> if (rotation) Direction.SOUTH else Direction.NORTH
-            Direction.SOUTH -> if (rotation) Direction.WEST else Direction.EAST
+            Direction.RIGHT -> if (rotation) Direction.UP else Direction.DOWN
+            Direction.UP -> if (rotation) Direction.RIGHT else Direction.LEFT
+            Direction.LEFT -> if (rotation) Direction.DOWN else Direction.UP
+            Direction.DOWN -> if (rotation) Direction.LEFT else Direction.RIGHT
         }
         return nextDirection
     }
@@ -115,10 +115,10 @@ class Day16 : Day("16") {
 
     private fun getNext(current: Point, direction: Direction): Point {
         return when (direction) {
-            Direction.SOUTH -> Point(current.x + 1, current.y)
-            Direction.EAST -> Point(current.x, current.y + 1)
-            Direction.NORTH -> Point(current.x - 1, current.y)
-            Direction.WEST -> Point(current.x, current.y - 1)
+            Direction.DOWN -> Point(current.x + 1, current.y)
+            Direction.RIGHT -> Point(current.x, current.y + 1)
+            Direction.UP -> Point(current.x - 1, current.y)
+            Direction.LEFT -> Point(current.x, current.y - 1)
         }
     }
 
@@ -126,10 +126,10 @@ class Day16 : Day("16") {
         val horizontalMax = grid.entries.maxOf { it.key.x } + 1
         val verticalMax = grid.entries.maxOf { it.key.y } + 1
 
-        addBeamResults(0 until horizontalMax, 0) { i -> Point(i, 0) to Direction.EAST }
-        addBeamResults(0 until horizontalMax, verticalMax - 1) { i -> Point(i, verticalMax - 1) to Direction.WEST }
-        addBeamResults(0 until verticalMax, 0) { i -> Point(0, i) to Direction.SOUTH }
-        addBeamResults(0 until verticalMax, horizontalMax - 1) { i -> Point(horizontalMax - 1, i) to Direction.NORTH }
+        addBeamResults(0 until horizontalMax, 0) { i -> Point(i, 0) to Direction.RIGHT }
+        addBeamResults(0 until horizontalMax, verticalMax - 1) { i -> Point(i, verticalMax - 1) to Direction.LEFT }
+        addBeamResults(0 until verticalMax, 0) { i -> Point(0, i) to Direction.DOWN }
+        addBeamResults(0 until verticalMax, horizontalMax - 1) { i -> Point(horizontalMax - 1, i) to Direction.UP }
 
         return resultList.max()
     }

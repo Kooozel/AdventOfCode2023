@@ -5,7 +5,7 @@ import main.kooozel.kotlin.Direction
 
 class Day10 : Day("10") {
     val input = inputListTest
-    val direction = Direction.SOUTH
+    val direction = Direction.DOWN
     override fun partOne(): Any {
 
         val map = parseInput(input)
@@ -32,32 +32,32 @@ class Day10 : Day("10") {
         var nextDirection: Direction? = null
         var key: Pair<Int, Int>? = null
         when (direction) {
-            Direction.NORTH -> {
+            Direction.UP -> {
                 key = Pair((startCord.first - 1), startCord.second)
                 next = map.get(key)
-                if (next != null && next.connect.contains(Direction.SOUTH)) nextDirection =
-                    next.connect.first { it != Direction.SOUTH }
+                if (next != null && next.connect.contains(Direction.DOWN)) nextDirection =
+                    next.connect.first { it != Direction.DOWN }
             }
 
-            Direction.WEST -> {
+            Direction.LEFT -> {
                 key = Pair((startCord.first), startCord.second - 1)
                 next = map.get(key)
-                if (next != null && next.connect.contains(Direction.EAST)) nextDirection =
-                    next.connect.first { it != Direction.EAST }
+                if (next != null && next.connect.contains(Direction.RIGHT)) nextDirection =
+                    next.connect.first { it != Direction.RIGHT }
             }
 
-            Direction.EAST -> {
+            Direction.RIGHT -> {
                 key = Pair((startCord.first), startCord.second + 1)
                 next = map.get(key)
-                if (next != null && next.connect.contains(Direction.WEST)) nextDirection =
-                    next.connect.first { it != Direction.WEST }
+                if (next != null && next.connect.contains(Direction.LEFT)) nextDirection =
+                    next.connect.first { it != Direction.LEFT }
             }
 
-            Direction.SOUTH -> {
+            Direction.DOWN -> {
                 key = Pair((startCord.first + 1), startCord.second)
                 next = map.get(key)
-                if (next != null && next.connect.contains(Direction.NORTH)) nextDirection =
-                    next.connect.first { it != Direction.NORTH }
+                if (next != null && next.connect.contains(Direction.UP)) nextDirection =
+                    next.connect.first { it != Direction.UP }
             }
         }
         return if (next != null && nextDirection != null) {
@@ -171,13 +171,13 @@ class Pipe(val pipeType: PipeType, val coordinates: Pair<Int, Int>) {
 }
 
 enum class PipeType(val symbol: Char, val connect: List<Direction>) {
-    VERTICAL('|', listOf(Direction.NORTH, Direction.SOUTH)),
-    HORIZONTAL('-', listOf(Direction.WEST, Direction.EAST)),
-    NE_BEND('L', listOf(Direction.NORTH, Direction.EAST)),
-    NW_BEND('J', listOf(Direction.NORTH, Direction.WEST)),
-    SW_BEND('7', listOf(Direction.SOUTH, Direction.WEST)),
-    SE_BEND('F', listOf(Direction.SOUTH, Direction.EAST)),
-    START('S', listOf(Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.WEST));
+    VERTICAL('|', listOf(Direction.UP, Direction.DOWN)),
+    HORIZONTAL('-', listOf(Direction.LEFT, Direction.RIGHT)),
+    NE_BEND('L', listOf(Direction.UP, Direction.RIGHT)),
+    NW_BEND('J', listOf(Direction.UP, Direction.LEFT)),
+    SW_BEND('7', listOf(Direction.DOWN, Direction.LEFT)),
+    SE_BEND('F', listOf(Direction.DOWN, Direction.RIGHT)),
+    START('S', listOf(Direction.RIGHT, Direction.UP, Direction.DOWN, Direction.LEFT));
 
     override fun toString(): String {
         return "PipeType(symbol=$symbol, connect=$connect)"

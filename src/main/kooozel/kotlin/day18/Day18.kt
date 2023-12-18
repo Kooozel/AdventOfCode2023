@@ -2,12 +2,14 @@ package main.kooozel.kotlin.day18
 
 import main.kooozel.kotlin.Day
 import main.kooozel.kotlin.Direction
+import main.kooozel.kotlin.Point
+import main.kooozel.kotlin.Point.calculateManhattanDistance
 import main.kooozel.kotlin.plus
-import java.awt.Point
+
 import kotlin.math.abs
 
 class Day18: Day("18") {
-    val input = inputList
+    val input = inputListTest
 
 
     private fun readInstruction(string: String): Instruction {
@@ -17,9 +19,9 @@ class Day18: Day("18") {
     }
 
 
-    private fun getPolygon(input: List<Instruction>, start: Point): MutableList<Pair<Long, Long>> {
-        return input.fold(mutableListOf(Pair(start.x.toLong(), start.y.toLong()))) { acc, instruction ->
-            acc.apply { add(instruction.direction.plus(last(), instruction.height)) }
+    private fun getPolygon(input: List<Instruction>, start: Point): MutableList<Point> {
+        return input.fold(mutableListOf(start)) { acc, instruction ->
+            acc.apply { add(last().plus(instruction.direction ,instruction.height)) }
         }
     }
 
@@ -29,22 +31,22 @@ class Day18: Day("18") {
     }
 
     private fun calculateTrench(instructions: List<Instruction>): Long {
-        val polygon = getPolygon(instructions, Point(0, 0))
+        val polygon = getPolygon(instructions, Point(0,0))
         val length = length(polygon)
         val area = area(polygon)
         return area + (length / 2) + 1L
     }
 
-    private fun length(polygon: MutableList<Pair<Long, Long>>) =
+    private fun length(polygon: MutableList<Point>) =
         polygon.zipWithNext { point1, point2 -> calculateManhattanDistance(point1, point2) }
             .fold(0L) { acc, distance -> acc + distance }
             .plus(calculateManhattanDistance(polygon.last(), polygon.first()))
 
-    private fun area(polygon: List<Pair<Long, Long>>): Long {
+    private fun area(polygon: List<Point>): Long {
         val n = polygon.size
         var area = 0L
         for (i in 0 until n - 1) {
-            area += polygon[i].first * polygon[i + 1].second - polygon[i + 1].first * polygon[i].second
+            area += polygon[i].x * polygon[i + 1].y - polygon[i + 1].x * polygon[i].y
         }
         return abs(area) / 2
     }
@@ -57,10 +59,10 @@ class Day18: Day("18") {
     private fun toNewInstruction(old: Instruction): Instruction {
         val height = old.color.drop(1).take(5).toLong(16)
         val direction = when (old.color.takeLast(1)) {
-            "0" -> Direction.EAST
-            "1" -> Direction.SOUTH
-            "2" -> Direction.WEST
-            "3" -> Direction.NORTH
+            "0" -> Direction.RIGHT
+            "1" -> Direction.DOWN
+            "2" -> Direction.LEFT
+            "3" -> Direction.UP
             else -> throw IllegalArgumentException("wrong last char")
         }
         return Instruction(direction, height, old.color)
@@ -72,8 +74,4 @@ private data class Instruction(val direction: Direction, val height: Long, val c
     override fun toString(): String {
         return "Instruction(direction='$direction', height=$height, color=$color)"
     }
-}
-
-fun calculateManhattanDistance(point1: Pair<Long, Long>, point2: Pair<Long, Long>): Long {
-    return abs(point2.first - point1.first) + abs(point2.second - point1.second)
 }

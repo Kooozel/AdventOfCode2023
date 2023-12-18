@@ -13,10 +13,10 @@ class Day17 : Day("17") {
 
     private val grid = input.map { row -> row.map { it.digitToInt() } }
     private val directions = mapOf(
-        Direction.NORTH to setOf(Direction.NORTH, Direction.EAST, Direction.WEST),
-        Direction.WEST to setOf(Direction.WEST, Direction.NORTH, Direction.SOUTH),
-        Direction.SOUTH to setOf(Direction.SOUTH, Direction.EAST, Direction.WEST),
-        Direction.EAST to setOf(Direction.EAST, Direction.NORTH, Direction.SOUTH)
+        Direction.UP to setOf(Direction.UP, Direction.RIGHT, Direction.LEFT),
+        Direction.LEFT to setOf(Direction.LEFT, Direction.UP, Direction.DOWN),
+        Direction.DOWN to setOf(Direction.DOWN, Direction.RIGHT, Direction.LEFT),
+        Direction.RIGHT to setOf(Direction.RIGHT, Direction.UP, Direction.DOWN)
     )
 
     private fun calculateHeatLoss(minSteps: Int = 1, isValidNextMove: (State, Direction) -> Boolean): Int {
@@ -24,7 +24,7 @@ class Day17 : Day("17") {
         val seen = mutableSetOf<State>()
         val queue = PriorityQueue<Work>()
 
-        State(Point(0, 0), Direction.SOUTH, 0).apply {
+        State(Point(0, 0), Direction.DOWN, 0).apply {
             queue += Work(this, 0)
             seen += this
         }
