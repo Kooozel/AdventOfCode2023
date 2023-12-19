@@ -5,7 +5,7 @@ import main.kooozel.kotlin.dropBlanks
 import main.kooozel.kotlin.parseNumbers
 
 class Day19 : Day("19") {
-    val input = inputStringTest
+    val input = inputString
     override fun partOne(): Any {
         val (workflows, parts) = input.split("\n\n")
         val partList = getPartList(parts)
@@ -112,8 +112,9 @@ class Day19 : Day("19") {
                 println("eror")
             }
 
-            val lesserRange = oldRange!!.first..< number.toInt()
-            val moreRange = number.toInt()..oldRange.last
+
+            val lesserRange = if (less) oldRange.first..< number.toInt() else oldRange.first .. number.toInt()
+            val moreRange = if (less) number.toInt()..oldRange.last else number.toInt() + 1 .. oldRange.last
             val morePart =
                 part.copy(ranges = part.ranges.toMutableMap().apply { this[property] = moreRange })
             val lessPart =
@@ -139,7 +140,7 @@ class Day19 : Day("19") {
         }
 
         val result = splitRanges(part, currentWorkflow!!.rest)
-        println(distinctRanges)
+        println(distinctRanges.map { it.ranges.values.map { it.size().toLong() }.reduce(Long::times) } )
         return result
     }
 
