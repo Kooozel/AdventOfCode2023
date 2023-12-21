@@ -2,6 +2,7 @@ package main.kooozel.kotlin.day20
 
 import main.kooozel.kotlin.Day
 import main.kooozel.kotlin.dropBlanks
+import main.kooozel.kotlin.findLCMOfListOfNumbers
 import java.util.*
 
 
@@ -26,81 +27,98 @@ class Day20 : Day("20") {
         return result
     }
 
-    fun start(listOfModule: List<ElfModule>, pulse: Pulse) {
-        val queue = LinkedList<Pair<ElfModule, Pulse>>()
+    val lcmInput = mutableMapOf<String, Long>()
+
+    fun start(listOfModule: List<ElfModule>, pulse: Pulse, parents: List<ElfModule>) {
+        val queue = LinkedList<Signal>()
 
         val module = listOfModule.first { it.type == Type.BROADCAST }
-        queue.add(Pair(module, pulse))
+        queue.add(Signal(module, pulse, "button"))
 
         while (queue.isNotEmpty()) {
-            val (currentModule, currentPulse) = queue.remove()
-            val result = process(currentModule, listOfModule, currentPulse)
+            val (currentModule, currentPulse, from) = queue.remove()
 
-            for ((newModule, newPulse) in result) {
-                if (newPulse != null) {
-                    queue.add(Pair(newModule, newPulse))
+            for (toWatch in parents) {
+                if (currentModule.name == toWatch.name && currentPulse == Pulse.LOW && from == toWatch.inputs.first().first) {
+                    lcmInput[currentModule.name] = i.toLong() + 1
+                }
+            }
+
+            if (lcmInput.size == parents.size) {
+                run = false
+                break
+            }
+
+
+
+
+            val result = processOne(currentModule, currentPulse, from)
+            if (result.pulse != null) {
+                for (connected in currentModule.connected){
+                    val elfModule = listOfModule.find { it.name == connected }
+                    if (elfModule == null) {
+//                        if (result.pulse == Pulse.LOW) sumLow++ else sumHigh++
+                        println("${currentModule.name}  ${result.pulse} -> output")
+                        continue
+                    }
+//                    println("${currentModule.name}  ${result.pulse} -> ${elfModule.name}")
+                    queue.add(Signal(elfModule, result.pulse, result.from))
                 }
             }
         }
     }
 
-    private fun process(
-        module: ElfModule,
-        listOfModule: List<ElfModule>,
-        pulse: Pulse
-    ): MutableList<Pair<ElfModule, Pulse?>> {
-        val result = mutableListOf<Pair<ElfModule, Pulse?>>()
-        for (i in module.connected.indices) {
-            val sendTo = listOfModule.find { it.name == module.connected[i] }
-            if (sendTo == null) {
-                if (pulse == Pulse.LOW) sumLow++ else sumHigh++
-//                println("${module.name}  $pulse -> output")
-                continue
-            }
-            if (pulse == Pulse.LOW) sumLow++ else sumHigh++
-//            println("${module.name}  $pulse -> ${sendTo.name}")
-            result.add(Pair(sendTo, module.sentPulse(pulse, sendTo)))
-        }
-        return result
+    private fun processOne(currentModule: ElfModule, currentPulse: Pulse?, from: String): Signal{
+        if (currentPulse == Pulse.LOW) sumLow++ else sumHigh++
+        val newPulse = currentModule.getPulse(currentPulse!!, from)
+        return Signal(currentModule, newPulse, currentModule.name)
     }
+
     var sumLow = 0L
     var sumHigh= 0L
-    val listOfModule = parseInput(input)
 
     override fun partOne(): Any {
-        val listOfModule = parseInput(input)
-        println("button - { low -> broadcaster }")
-        val cycle = 1000
-        for (i in 0 until cycle) {
-            println("Cycle ${i + 1}")
-            start(listOfModule, Pulse.LOW)
-            sumLow ++
-            val module = listOfModule.first { it.name.contains("mf") }.inputs
-            println(module)
-            println("=".repeat(10))
-            println(listOfModule.first { it.name.contains("xj") })
+//        val listOfModule = parseInput(input)
+//        println("button - { low -> broadcaster }")
+//        val cycle = 1000
+//        for (i in 0 until cycle) {
+//            println("Cycle ${i + 1}")
+//            start(listOfModule,Pulse.LOW)
+//            println("=".repeat(10))
 //            println("Sum low  = $sumLow, Sum high = $sumHigh")
-        }
+//        }
         return sumLow.times(sumHigh)
     }
 
+    var i = 0
+    var run = true
+
     override fun partTwo(): Any {
         val listOfModule = parseInput(input)
+        val parents = findParents("rx", listOfModule)
+        println(parents)
+
         println("button - { low -> broadcaster }")
-        var i = 1
-        while(!listOfModule.first { it.name.contains("mf") }.inputs.all { it.second == Pulse.HIGH}) {
-            println("Cycle ${i}")
-            start(listOfModule, Pulse.LOW)
-            sumLow++
+        while (run) {
+            println("Cycle ${i + 1}")
+            start(listOfModule,Pulse.LOW, parents)
             println("=".repeat(10))
-            println(listOfModule.first { it.name.contains("mf") })
-            i++
 //            println("Sum low  = $sumLow, Sum high = $sumHigh")
+            i++
         }
 
-
-        return i
+        return findLCMOfListOfNumbers(lcmInput.values.toList())
     }
+
+    private fun findParents(name: String, listOfModule: List<ElfModule>): List<ElfModule> {
+        var parents = listOfModule.filter { it.connected.contains(name) }
+        if (parents.size == 1) {
+           parents = findParents(parents[0].name, listOfModule)
+        }
+        return parents
+    }
+
+
 }
 
 fun createName(input: String): String {
@@ -153,7 +171,32 @@ data class ElfModule(
             else -> throw IllegalArgumentException("Unknown destination")
         }
     }
+
+    fun getPulse(incomingPulse: Pulse, from: String?): Pulse? {
+        when (this.type) {
+            Type.FLIP_FLOP -> return if (incomingPulse == Pulse.HIGH) null else if (this.on) {
+                this.on = false; Pulse.LOW
+            } else {
+                this.on = true; Pulse.HIGH
+            }
+            Type.CONJUNCTION -> {
+                //if not present add
+                val pulsePair = this.inputs.first { it.first == from }
+                this.inputs.remove(pulsePair)
+                val updated = pulsePair.copy(pulsePair.first, incomingPulse)
+                this.inputs.add(updated)
+
+                if (this.inputs.all { it.second == Pulse.HIGH }) return Pulse.LOW else return Pulse.HIGH
+            }
+
+            Type.OUTPUT -> return null
+            Type.BROADCAST -> return incomingPulse
+
+            else -> throw IllegalArgumentException("Unknown destination")
+        }
+    }
 }
+data class Signal(val elfModule: ElfModule, val pulse: Pulse?, val from: String)
 
 enum class Type(val prefix: String) {
     FLIP_FLOP("%"), CONJUNCTION("&"), BROADCAST("b"), OUTPUT("o");
