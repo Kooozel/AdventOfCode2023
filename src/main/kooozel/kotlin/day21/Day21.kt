@@ -3,11 +3,12 @@ package main.kooozel.kotlin.day21
 import main.kooozel.kotlin.Day
 import main.kooozel.kotlin.Direction
 import main.kooozel.kotlin.Point
-import java.util.LinkedList
+import java.util.*
+
 
 class Day21 : Day("21") {
-    val input = inputList
-    private val grid = input.flatMapIndexed { index, row ->
+    private val input = inputListTest
+    private val tile = input.flatMapIndexed { index, row ->
         row.mapIndexed { column, it ->
             Garden(
                 ItemType.fromChar(it),
@@ -15,51 +16,45 @@ class Day21 : Day("21") {
             )
         }
     }
-    fun oneStep(start: Point, i: Int): MutableSet<Pair<Point, Int>> {
-        val setOfPoints = mutableSetOf<Pair<Point, Int>>()
-        val newI = i + 1
+
+    fun oneStep(start: Point): MutableSet<Point> {
+        var result = mutableSetOf<Point>()
         for (direction in Direction.entries) {
             val newCoords = start.plus(direction)
 
-            // Wrap around the grid if coordinates go beyond the boundaries
-            val wrappedCoords = Point(
-                (newCoords.x + maxX) % maxX,
-                (newCoords.y + maxY) % maxY
-            )
-
-            val newPoint = grid.find { it.coords == wrappedCoords }
-            if (newPoint != null && newPoint.type != ItemType.ROCK) {
-                setOfPoints.add(Pair(wrappedCoords, newI))
+            val newPoint = tile.find { it.coords == newCoords && it.type != ItemType.ROCK }
+            if (newPoint != null) {
+                result.add(newCoords)
             }
         }
-        return setOfPoints
+
+        visited[start] = result.size
+        return result
     }
 
+    val visited = mutableMapOf<Point, Int>()
 
-    val steps = 64
-    val maxX = grid.maxOf { it.coords.x }
-    val maxY = grid.maxOf { it.coords.y }
     override fun partOne(): Any {
-        val start = grid.first { it.type == ItemType.START }
-        val queue = LinkedList<Pair<Point, Int>>()
-        queue.add(Pair(start.coords, 0))
-        while (queue.isNotEmpty() && !queue.all { it.second == steps }) {
-            val (point, i) = queue.remove()
-            val result = oneStep(point, i)
-            for ((newPoint, newI) in result) {
-                if (newI <= steps && !queue.contains(Pair(newPoint, newI))) {
-                    queue.add(Pair(newPoint, newI))
-                }
+        val start = tile.first { it.type == ItemType.START }
+        val queue = LinkedList<Set<Point>>()
+        queue.add(setOf(start.coords))
+        var step = 10
+        while (queue.isNotEmpty() && step > 0) {
+            val process = queue.remove()
+            val next = mutableSetOf<Point>()
+            for (point in process) {
+                val result = oneStep(point)
+                next.addAll(result)
             }
+            println(next.size)
+            queue.add(next.filter { it != visited.keys }.toSet())
+            step--
         }
-        return queue.size
+        return tile.size
     }
 
     override fun partTwo(): Any {
-        println(maxX)
-        println(maxY)
-        println(26501365 % 131)
-        return grid.size
+        return input.size
     }
 }
 
