@@ -55,5 +55,10 @@ public class Point extends Point2D {
     public Point plus(Direction direction) {
         return plus(direction, 1L);
     }
+
+    @Override
+    public String toString() {
+        return "Point{" + "x=" + x + ", y=" + y + '}';
+    }
 }
 
