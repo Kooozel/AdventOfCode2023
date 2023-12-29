@@ -4,6 +4,7 @@ import main.kooozel.kotlin.Day
 import main.kooozel.kotlin.Direction
 import main.kooozel.kotlin.Point
 import java.util.*
+import kotlin.math.sqrt
 
 
 class Day21 : Day("21") {
@@ -16,40 +17,33 @@ class Day21 : Day("21") {
             )
         }
     }
-    private val maxX = tile.maxOf { it.coords.x }
-    private val maxY = tile.maxOf { it.coords.y }
+    private val maxX = tile.maxOf { it.coords.x } + 1
+    private val maxY = tile.maxOf { it.coords.y } + 1
 
     private fun findPointType(point: Point): Garden? {
         val coords = tile.map { it.coords }
-        if (point in coords) {
-            return tile.find { it.coords == point && it.type != ItemType.ROCK }
+        return if (point in coords) {
+            tile.find { it.coords == point && it.type != ItemType.ROCK }
         } else {
-            return tile.find { it.coords == recalculate(point) && it.type != ItemType.ROCK }
+            val abstractPoint = recalculate(point)
+            tile.find { it.coords == abstractPoint && it.type != ItemType.ROCK }
         }
 
     }
 
-    private fun recalculate(point: Point): Point {
+    fun recalculate(point: Point): Point {
 
         // -1 -> 10
         // -2 -> 9
         // 1 -> 0
         //
-        var x = point.x % maxX
-        if (point.x !in 0..maxX) {
-            if (x > 0) {
-                x -= 1
-            } else if (x < 0) {
-                x += (maxX + 1)
-            }
+        var x = point.x
+        if (x !in 0..<maxX) {
+            x = (x % maxX + maxX) % maxX
         }
-        var y = point.y % maxY
-        if (point.y !in 0..maxY) {
-            if (y > 0) {
-                y -= 1
-            } else if (y < 0) {
-                y += (maxY + 1)
-            }
+        var y = point.y
+        if (y !in 0..<maxY) {
+            y = (y % maxY + maxY) % maxY
         }
         return Point(x, y)
     }
@@ -65,19 +59,21 @@ class Day21 : Day("21") {
                 result.add(newCoords)
             }
         }
+        visited.add(start)
 
-        visited[start] = result.size
         return result
     }
 
-    private val visited = mutableMapOf<Point, Int>()
-    private val  resultList = mutableListOf<Int>()
+    private val visited = mutableListOf<Point>()
+    private val resultList = mutableListOf<Int>()
+    private val intialSteps = 10
 
     override fun partOne(): Any {
         val start = tile.first { it.type == ItemType.START }
         val queue = LinkedList<Set<Point>>()
         queue.add(setOf(start.coords))
-        var step = 50
+        var step = intialSteps
+        var i = 0
         while (queue.isNotEmpty() && step > 0) {
             val process = queue.remove()
             val next = mutableSetOf<Point>()
@@ -85,15 +81,50 @@ class Day21 : Day("21") {
                 val result = oneStep(point)
                 next.addAll(result)
             }
-            resultList.add(next.size)
-            queue.add(next.filter { it != visited.keys }.toSet())
+            val toAdd = next.filter { it !in visited }.toSet()
+            resultList.add(toAdd.size)
+            queue.add(toAdd)
             step--
+            i++
+            println(
+                "Result after ${i} steps: ${
+                    if (i % 2 == 0) resultList.filterIndexed { index, _ -> index % 2 != 0 }
+                        .sum() + 1 else resultList.filterIndexed { index, _ -> index % 2 == 0 }.sum()
+                }"
+            )
         }
-        return resultList.last()
+        if (intialSteps % 2 == 0) {
+            return resultList.filterIndexed { index, _ -> index % 2 != 0 }.sum() + 1
+        } else {
+            return resultList.filterIndexed { index, _ -> index % 2 == 0 }.sum()
+        }
     }
 
+    val r0 = 3725
+    val r1 = 32896
+    val r2 = 91055
+
     override fun partTwo(): Any {
+
+        val a = (r2 + r0 - 2* r1) / 2
+        val b = r1 - r0 - a
+        val c = r0
+
+        // solve ax2 + bx + c , where x = 202300
         return input.size
+    }
+
+    class QuadraticEquationSolver(val a: Double, val b: Double, val c: Double) {
+        fun solveForRealRoots(): Pair<Double, Double>? {
+            val discriminant = b * b - 4 * a * c
+            if (discriminant < 0) {
+                // No real roots
+                return null
+            }
+            val root1 = (-b + sqrt(discriminant)) / (2 * a)
+            val root2 = (-b - sqrt(discriminant)) / (2 * a)
+            return Pair(root1, root2)
+        }
     }
 }
 
