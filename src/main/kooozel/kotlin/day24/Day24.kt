@@ -3,9 +3,10 @@ package main.kooozel.kotlin.day24
 import com.google.common.collect.Sets
 import main.kooozel.kotlin.Day
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class Day24 : Day("24") {
-    val input = inputListTest
+    val input = inputList
     val hailList = input.map { row ->
         val (position, velocity) = row.split(" @ ").map { el -> el.split(",").map { it.trim().toLong() } }
         return@map Hail(position, velocity)
@@ -54,21 +55,21 @@ class Day24 : Day("24") {
         val matrix = arrayOf(first, second, third, fourth)
 
         solveSystem(matrix)
-        val list = mutableListOf<Long>()
+        val list = mutableListOf<BigInteger>()
         println("Solution:")
         matrix.forEachIndexed { index, row ->
-            list.add(Math.round(row[row.size - 1]))
-            println("x${index + 1} = ${Math.round(row[row.size - 1])}")
+            list.add(Math.round(row[row.size - 1]).toBigInteger())
+            println("x${index + 1} = ${row[row.size - 1]}")
         }
 
         val (x, y, dx, dy) = list
-        val s1 = (dx * (hailList[0].y - y) + dy * (x - hailList[0].x)) / (dy * hailList[0].dx - dx * hailList[0].dy)
-        val s2 = (dx * (hailList[1].y - y) + dy * (x - hailList[1].x)) / (dy * hailList[1].dx - dx * hailList[1].dy)
-        val t1 =( hailList[0].x + s1 * hailList[0].dx - x) / dx
-        val t2 =( hailList[0].x + s2 * hailList[0].dx - x) / dx
+        val s1 = (dx * (hailList[0].y.toBigInteger() - y) + dy * (x - hailList[0].x.toBigInteger())) / (dy * hailList[0].dx.toBigInteger() - dx * hailList[0].dy.toBigInteger())
+        val s2 = (dx * (hailList[1].y.toBigInteger() - y) + dy * (x - hailList[1].x.toBigInteger())) / (dy * hailList[1].dx.toBigInteger() - dx * hailList[1].dy.toBigInteger())
+        val t1 =( hailList[0].x.toBigInteger() + s1 * hailList[0].dx.toBigInteger() - x) / dx
+        val t2 =( hailList[1].x.toBigInteger() + s2 * hailList[1].dx.toBigInteger() - x) / dx
 
-        val dz = (hailList[1].z - hailList[0].z + s2 * hailList[1].dz - s1* hailList[0].dz)/ (t2 - t1)
-        val z = hailList[0].z + s1 * hailList[0].dz - t1 * dz
+        val dz = (hailList[1].z.toBigInteger() - hailList[0].z.toBigInteger() + s2 * hailList[1].dz.toBigInteger() - s1* hailList[0].dz.toBigInteger())/ (t2 - t1)
+        val z = hailList[0].z.toBigInteger() + s1 * hailList[0].dz.toBigInteger() - t1 * dz
         return x + y + z
     }
 
